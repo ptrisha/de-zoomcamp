@@ -1,0 +1,63 @@
+SELECT
+  COUNT(1)
+FROM (
+	SELECT 
+	  CAST(lpep_pickup_datetime AS DATE) as "pu_day",
+	  CAST(lpep_dropoff_datetime AS DATE) as "do_day"
+	FROM green_taxi_trips t
+	WHERE 
+	  CAST(lpep_pickup_datetime AS DATE)='2019-01-15' AND
+	  CAST(lpep_dropoff_datetime AS DATE)='2019-01-15'
+) AS u;
+
+
+SELECT 
+	CAST(lpep_pickup_datetime AS DATE) as "pu_day",
+	CAST(lpep_dropoff_datetime AS DATE) as "do_day",
+	COUNT(1)
+FROM green_taxi_trips t
+WHERE 
+	CAST(lpep_pickup_datetime AS DATE)='2019-01-15' AND
+	CAST(lpep_dropoff_datetime AS DATE)='2019-01-15'
+GROUP BY  CAST(lpep_pickup_datetime AS DATE), CAST(lpep_dropoff_datetime AS DATE);
+
+SELECT 
+	MAX(trip_distance) as "day_max_dist",
+	CAST(lpep_pickup_datetime AS DATE)
+FROM green_taxi_trips t
+GROUP BY  CAST(lpep_pickup_datetime AS DATE)
+ORDER BY "day_max_dist" DESC
+;
+
+SELECT
+  passenger_count,
+  COUNT(1)
+FROM (
+	SELECT 
+	  CAST(lpep_pickup_datetime AS DATE) as "pu_day",
+	  passenger_count
+	FROM green_taxi_trips t
+	WHERE 
+	  CAST(lpep_pickup_datetime AS DATE)='2019-01-01' AND
+      ( passenger_count=2 OR
+	    passenger_count=3 )
+) AS u
+GROUP BY u.passenger_count
+;
+
+SELECT
+  "PULocationID",
+  zpu."Zone" AS "pu_zone",
+  "DOLocationID",
+  zdo."Zone" AS "do_zone",
+  tip_amount
+FROM 
+  green_taxi_trips t LEFT JOIN zones zpu
+    ON t."PULocationID" = zpu."LocationID"
+  LEFT JOIN zones zdo
+    ON t."DOLocationID" = zdo."LocationID"
+WHERE zpu."Zone" = 'Astoria'
+ORDER BY tip_amount DESC
+;
+
+

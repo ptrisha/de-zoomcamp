@@ -1,0 +1,40 @@
+docker run -it \
+ -e POSTGRES_USER="root" \
+ -e POSTGRES_PASSWORD="root" \
+ -e POSTGRES_DB="ny_taxi" \
+ -v $(pwd)/ny_taxi_postgres_data:/var/lib/postgresql/data \
+ -p 5432:5432 \
+ postgres:13
+
+pgcli -h localhost -p 5432 -u root -d ny_taxi
+
+# trips
+URL="https://github.com/DataTalksClub/nyc-tlc-data/releases/download/green/green_tripdata_2019-01.csv.gz"
+URL="http://127.0.0.1:8000/data/green_tripdata_2019-01.csv"
+
+# zones
+URL="https://s3.amazonaws.com/nyc-tlc/misc/taxi+_zone_lookup.csv"
+URL="http://127.0.0.1:8000/data/taxi+_zone_lookup.csv"
+
+docker run -it ingest_taxi:v001 \
+    --user=root \
+    --password=root \
+    --host=localhost \
+    --port=5432 \
+    --db=ny_taxi \
+    --table_name=green_taxi_trips \
+    --url=${URL}
+
+
+docker run -it \
+  -e PGADMIN_DEFAULT_EMAIL="admin@admin.com" \
+  -e PGADMIN_DEFAULT_PASSWORD="root" \
+  -p 8080:80 \
+  dpage/pgadmin4
+
+docker-compose up -d
+
+docker-compose down
+
+
+
