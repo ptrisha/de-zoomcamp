@@ -1,3 +1,5 @@
+Question 3  Count Records
+=========================
 SELECT
   COUNT(1)
 FROM (
@@ -21,6 +23,9 @@ WHERE
 	CAST(lpep_dropoff_datetime AS DATE)='2019-01-15'
 GROUP BY  CAST(lpep_pickup_datetime AS DATE), CAST(lpep_dropoff_datetime AS DATE);
 
+
+Question 4  Largest trip for each day
+=====================================
 SELECT 
 	MAX(trip_distance) as "day_max_dist",
 	CAST(lpep_pickup_datetime AS DATE)
@@ -29,6 +34,8 @@ GROUP BY  CAST(lpep_pickup_datetime AS DATE)
 ORDER BY "day_max_dist" DESC
 ;
 
+Question 5  The number of passengers
+====================================
 SELECT
   passenger_count,
   COUNT(1)
@@ -45,6 +52,9 @@ FROM (
 GROUP BY u.passenger_count
 ;
 
+
+Question 6   Largest tip
+========================
 SELECT
   "PULocationID",
   zpu."Zone" AS "pu_zone",
