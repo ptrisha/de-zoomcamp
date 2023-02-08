@@ -1,0 +1,131 @@
+Question 1
+----------
+Create a flow that loads the green taxi csv dataset for Jan 2020 into GCS:
+
+$prefect orion start
+
+ ___ ___ ___ ___ ___ ___ _____    ___  ___ ___ ___  _  _
+| _ \ _ \ __| __| __/ __|_   _|  / _ \| _ \_ _/ _ \| \| |
+|  _/   / _|| _|| _| (__  | |   | (_) |   /| | (_) | .` |
+|_| |_|_\___|_| |___\___| |_|    \___/|_|_\___\___/|_|\_|
+
+Configure Prefect to communicate with the server with:
+
+    prefect config set PREFECT_API_URL=http://127.0.0.1:4200/api
+
+View the API reference documentation at http://127.0.0.1:4200/docs
+
+Check out the dashboard at http://127.0.0.1:4200
+
+In another terminal:
+$ prefect config set PREFECT_API_URL=http://127.0.0.1:4200/api
+
+
+$ prefect block register -m prefect_gcp
+Successfully registered 6 blocks
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Registered Blocks             ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ BigQuery Warehouse            │
+│ GCP Cloud Run Job             │
+│ GCP Credentials               │
+│ GcpSecret                     │
+│ GCS Bucket                    │
+│ Vertex AI Custom Training Job │
+└───────────────────────────────┘
+
+ To configure the newly registered blocks, go to the Blocks page in the Prefect UI: 
+http://127.0.0.1:4200/blocks/catalog
+
+$ python etl_web_to_gcs.py 
+04:39:02.473 | INFO    | prefect.engine - Created flow run 'fervent-jaguar' for flow 'etl-web-to-gcs'
+04:39:02.602 | INFO    | Flow run 'fervent-jaguar' - Created task run 'fetch-b4598a4a-0' for task 'fetch'
+04:39:02.603 | INFO    | Flow run 'fervent-jaguar' - Executing 'fetch-b4598a4a-0' immediately...
+/Users/pllee/de-zoomcamp/week2-workflow-orchestration/etl_web_to_gcs.py:14: DtypeWarning: Columns (3) have mixed types. Specify dtype option on import or set low_memory=False.
+  df = pd.read_csv(dataset_url)
+04:39:05.422 | INFO    | Task run 'fetch-b4598a4a-0' - Finished in state Completed()
+04:39:05.450 | INFO    | Flow run 'fervent-jaguar' - Created task run 'clean_green-b27e2690-0' for task 'clean_green'
+04:39:05.451 | INFO    | Flow run 'fervent-jaguar' - Executing 'clean_green-b27e2690-0' immediately...
+04:39:05.695 | INFO    | Task run 'clean_green-b27e2690-0' -    VendorID lpep_pickup_datetime lpep_dropoff_datetime  ... payment_type  trip_type  congestion_surcharge
+0       2.0  2019-12-18 15:52:30   2019-12-18 15:54:39  ...          1.0        1.0                   0.0
+1       2.0  2020-01-01 00:45:58   2020-01-01 00:56:39  ...          1.0        2.0                   0.0
+
+[2 rows x 20 columns]
+04:39:05.696 | INFO    | Task run 'clean_green-b27e2690-0' - columns: VendorID                        float64
+lpep_pickup_datetime     datetime64[ns]
+lpep_dropoff_datetime    datetime64[ns]
+store_and_fwd_flag               object
+RatecodeID                      float64
+PULocationID                      int64
+DOLocationID                      int64
+passenger_count                 float64
+trip_distance                   float64
+fare_amount                     float64
+extra                           float64
+mta_tax                         float64
+tip_amount                      float64
+tolls_amount                    float64
+ehail_fee                       float64
+improvement_surcharge           float64
+total_amount                    float64
+payment_type                    float64
+trip_type                       float64
+congestion_surcharge            float64
+dtype: object
+04:39:05.697 | INFO    | Task run 'clean_green-b27e2690-0' - rows: 447770
+04:39:05.726 | INFO    | Task run 'clean_green-b27e2690-0' - Finished in state Completed()
+04:39:05.755 | INFO    | Flow run 'fervent-jaguar' - Created task run 'write_local-f322d1be-0' for task 'write_local'
+04:39:05.756 | INFO    | Flow run 'fervent-jaguar' - Executing 'write_local-f322d1be-0' immediately...
+04:39:06.937 | INFO    | Task run 'write_local-f322d1be-0' - Finished in state Completed()
+04:39:06.968 | INFO    | Flow run 'fervent-jaguar' - Created task run 'write_gcs-1145c921-0' for task 'write_gcs'
+04:39:06.969 | INFO    | Flow run 'fervent-jaguar' - Executing 'write_gcs-1145c921-0' immediately...
+04:39:07.101 | INFO    | Task run 'write_gcs-1145c921-0' - Getting bucket 'dtc_data_lake_steady-cascade-376200'.
+04:39:07.292 | INFO    | Task run 'write_gcs-1145c921-0' - Uploading from PosixPath('data/green/green_tripdata_2020-01.parquet') to the bucket 'dtc_data_lake_steady-cascade-376200' path 'data/green/green_tripdata_2020-01.parquet'.
+04:39:08.117 | INFO    | Task run 'write_gcs-1145c921-0' - Finished in state Completed()
+04:39:08.153 | INFO    | Flow run 'fervent-jaguar' - Finished in state Completed('All states completed.')
+
+
+
+Question 2
+----------
+To create a deploymennt using the flow in etl_web_to_gcs.py :
+
+$ prefect deployment build etl_web_to_gcs.py:etl_web_to_gcs -n "ETL web to GCS Deploy"
+Found flow 'etl-web-to-gcs'
+Default '.prefectignore' file written to /Users/pllee/de-zoomcamp/week2-workflow-orchestration/.prefectignore
+Deployment YAML created at 
+'/Users/pllee/de-zoomcamp/week2-workflow-orchestration/etl_web_to_gcs-deployment.yaml'.
+Deployment storage None does not have upload capabilities; no files uploaded.  Pass --skip-upload to suppress
+this warning.
+
+$ prefect deployment apply etl_web_to_gcs-deployment.yaml 
+Successfully loaded 'ETL web to GCS Deploy'
+Deployment 'etl-web-to-gcs/ETL web to GCS Deploy' successfully created with id 
+'5e95eb24-8308-4d95-a833-f3461af7863b'.
+View Deployment in UI: http://127.0.0.1:4200/deployments/deployment/5e95eb24-8308-4d95-a833-f3461af7863b
+
+To execute flow runs from this deployment, start an agent that pulls work from the 'default' work queue:
+$ prefect agent start -q 'default'
+
+Question 4
+==========
+To build the deployment with flow code from github repo configuration stored in github storage block:
+$ python github_deploy.py
+
+Run the deployment with parameters for green taxi rides in Nov 2019:
+$ prefect deployment run etl-parent-flow/github-flow -p "months=[4]" -p "color=green" -p "year=2019"
+Creating flow run for deployment 'etl-parent-flow/github-flow'...
+Created flow run 'opal-parakeet'.
+└── UUID: 840a3344-8120-4970-917f-0d026ecfecdb
+└── Parameters: {'months': [4], 'color': 'green', 'year': 2019}
+└── Scheduled start time: 2023-02-09 03:04:03 +08 (now)
+└── URL: http://127.0.0.1:4200/flow-runs/flow-run/840a3344-8120-4970-917f-0d026ecfecdb
+
+$ prefect agent start -q 'default'
+
+
+
+
+
+
