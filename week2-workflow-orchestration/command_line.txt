@@ -125,6 +125,19 @@ Created flow run 'opal-parakeet'.
 $ prefect agent start -q 'default'
 
 
+Question 5
+==========
+Switch profile to access prefect cloud workspace:
+$ prefect profile use prefect_cloud_hw2
+
+Switch to local profile:
+$ prefect profile use local
+
+Create programmatically gcs bucket block using gcp_credentials block:
+$ python create_gcs_block.py
+
+
+
 
 
 
