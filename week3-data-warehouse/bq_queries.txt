@@ -1,0 +1,56 @@
+-- Create external table referring to gcs path --
+CREATE OR REPLACE EXTERNAL TABLE `steady-cascade-376200.fhv.external_tripdata_2019`
+OPTIONS (
+  format = 'CSV',
+  uris = ['gs://dtc_data_lake_steady-cascade-376200/data/fhv/fhv_tripdata_2019-*.csv.gz']
+);
+
+-- Check fhv table --
+SELECT * FROM steady-cascade-376200.fhv.external_tripdata_2019 limit 10;
+
+-- Count fhv records for 2019 data --
+SELECT COUNT(*) 
+FROM steady-cascade-376200.fhv.external_tripdata_2019;
+
+-- Count number of distinct affiliated_base_number from external table --
+-- estimate: scans 0 MB --
+SELECT 
+COUNT (DISTINCT affiliated_base_number)
+FROM steady-cascade-376200.fhv.external_tripdata_2019;
+
+-- Create a non-partitioned BQ table from the external table --
+CREATE OR REPLACE TABLE  steady-cascade-376200.fhv.tripdata_2019_non_partitioned AS
+SELECT * FROM steady-cascade-376200.fhv.external_tripdata_2019;
+
+-- Count number of distinct affiliated_base_number from BQ table --
+-- estimate: scans 317.94 MB --
+SELECT 
+COUNT (DISTINCT affiliated_base_number)
+FROM steady-cascade-376200.fhv.tripdata_2019_non_partitioned;
+
+
+-- Count of records with PUlocationID and DOlocationID being NULL --
+-- result: 717,748 --
+SELECT COUNT(*)
+FROM steady-cascade-376200.fhv.tripdata_2019_non_partitioned
+WHERE (PUlocationID IS NULL) AND (DOlocationID IS NULL);
+
+-- Create partitioned and clustered BQ table --
+CREATE OR REPLACE TABLE  steady-cascade-376200.fhv.tripdata_2019_partitioned_clustered
+PARTITION BY DATE(pickup_datetime)
+CLUSTER BY affiliated_base_number AS
+SELECT * FROM steady-cascade-376200.fhv.external_tripdata_2019;
+
+-- use partitioned table to query --
+-- scans 23.05 MB --
+SELECT DISTINCT affiliated_base_number
+FROM steady-cascade-376200.fhv.tripdata_2019_partitioned_clustered
+WHERE DATE(pickup_datetime) BETWEEN '2019-03-01' AND '2019-03-31';
+
+-- use non-partitioned table to query --
+-- scans 647.87 MB --
+SELECT DISTINCT affiliated_base_number
+FROM steady-cascade-376200.fhv.tripdata_2019_non_partitioned
+WHERE DATE(pickup_datetime) BETWEEN '2019-03-01' AND '2019-03-31';
+
+
