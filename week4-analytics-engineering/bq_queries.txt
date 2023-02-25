@@ -1,0 +1,51 @@
+-- Question 1: count of records in model fact_trips filtering for pickup time in years 2019 and 2020
+SELECT COUNT(*)
+FROM steady-cascade-376200.dbt_plee.fact_trips
+WHERE EXTRACT(YEAR from pickup_datetime)=2019 OR EXTRACT(YEAR from pickup_datetime)=2020;
+
+Answer: 61,540,576
+
+-- Question 2: double check the % green trips vs total trips
+SELECT COUNT(*)
+FROM steady-cascade-376200.dbt_plee.fact_trips
+WHERE service_type="Green";
+
+Answer: 6255990
+Total rows in fact_trips: 61,541,872
+% green trips = 6255990/ 61,541,872 = 10.1
+
+-- question 3: staging model for fhv tripdata filter with pickup time in year 2019
+SELECT COUNT(*) FROM `steady-cascade-376200.dbt_plee.stg_fhv_tripdata`
+WHERE EXTRACT(YEAR from pickup_datetime)=2019;
+
+Answer: 43,244,696
+
+-- question 4: core model fact_fhv_trips, keep only records with known pickup and dropoff locations
+SELECT COUNT(*)
+FROM steady-cascade-376200.dbt_plee.fact_fhv_trips
+WHERE EXTRACT(YEAR from pickup_datetime)=2019;
+
+Answer: 22 998 722
+
+--Question 5: which month has the most trips in the model fact_fhv_trips
+SELECT COUNT( EXTRACT(MONTH from pickup_datetime)  ) as trip_count, EXTRACT(MONTH from pickup_datetime) as month
+FROM steady-cascade-376200.dbt_plee.fact_fhv_trips
+GROUP BY month
+ORDER BY trip_count
+;
+
+row trip_count month
+1	187899     2
+2	190132     3
+3	256108     4
+4	262536     5
+5	278248     6
+6	290680     7
+7	311295     9
+8	327553     8
+9	340663     11
+10	349988     10
+11	354469     12
+12	19849151    1
+
+Answer: January has the biggest number of rides.
